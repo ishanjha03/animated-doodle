@@ -1,0 +1,26 @@
+name: Slack Notification
+
+on:
+  issue_comment:
+    types:
+      - created
+
+jobs:
+  notify-on-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if issue comment contains "All jobs have failed"
+        id: check-comment
+        run: echo "::set-output name=contains-failure::$(echo ${{ github.event.comment.body }} | grep -c 'All jobs have failed')"
+
+      - name: Send Slack Notification
+        if: steps.check-comment.outputs.contains-failure == '1'
+        uses: rtCamp/action-slack-notify@v2
+        with:
+          SLACK_CHANNEL: my-channel
+          SLACK_COLOR: '#ff0000'
+          SLACK_ICON: ':warning:'
+          SLACK_TITLE: 'Issue Comment'
+          SLACK_MESSAGE: 'All jobs have failed in the repository.'
+          SLACK_USERNAME: 'GitHub Actions'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
